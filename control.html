@@ -1,0 +1,50 @@
+<html>
+	<body style="margin:0px;">
+		<canvas></canvas>
+		<script src="/socket.io/socket.io.js"></script>
+
+		<script>
+
+let socket = io();
+console.log(socket);
+let c = document.querySelector('canvas');
+c.ontouchstart = c.onmousedown = ()=>{
+	socket.emit('keyin', parseInt(location.search.substring(1).split("=")[1]));
+	return false;
+}
+
+c.ontouchend = c.onmouseup = ()=>{
+         socket.emit('keyout', parseInt(location.search.substring(1).split("=")[1]));
+         return false;
+}
+
+		</script>
+
+		<script>
+c.width = window.innerWidth*0.98;
+c.height = window.innerHeight*0.98;
+let f = c.getContext('2d');
+f.fillRect(0,0,c.width, c.height);
+f.font = c.width+"px Courier";
+f.fillStyle="white";
+let n = location.search.substring(1).split("=")[1];
+let str = "";
+switch (parseInt(n)) {
+	case 37: str = "<";
+		break;
+	case 38: str="^";
+		break;
+	case 39: str = ">";
+		break;
+	case 40: str = "V";
+		break;
+	case 32: str = "π";
+		break;
+	default:
+		str = String.fromCharCode(n);
+		break; 
+}
+f.fillText(str, 0, c.width);	
+	</script>
+	</body>
+</html>

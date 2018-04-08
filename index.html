@@ -1,0 +1,366 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Game</title>
+	</head>
+	<body style="margin:0px;background-color:navy;">
+		<canvas style="background-color:white;"></canvas>
+		<script src="/socket.io/socket.io.js"></script>
+		<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+		<script>
+
+let socket = io();
+
+socket.on('keyin', (n)=>{
+	let e = new Event('keydown');
+	e.which = e.keyCode = n;
+	window.dispatchEvent(e);
+});
+
+socket.on('keyout', (n)=>{
+         let e = new Event('keyup');
+         e.which = e.keyCode = n;
+         window.dispatchEvent(e);
+});
+
+var  c = document.querySelector('canvas');
+c.width = window.innerWidth*0.98;
+c.height = window.innerHeight*0.98;
+
+var f = c.getContext('2d');
+
+var keyList = [];
+
+window.onkeydown = (event)=>{
+	let key = event.which || event.keyCode;
+	keyList[key] = true;
+	if(key === 65 && lose == -1){
+		lose = 0;
+	}
+}
+
+window.onkeyup = (event)=>{
+	let key = event.which || event.keyCode;
+	keyList[key] = false;
+}
+
+		</script>
+		<script>
+
+class Enemy{
+	constructor(x, y, xv, yv){
+		this.x = x;
+		this.y = y;
+		this.w = 40;
+		this.h = 40;
+		this.xv = xv;
+		this.yv = yv;
+		this.list;
+		this.index = -1;
+	}
+
+	draw(ctx){
+		f.fillStyle="rgb(200, 30, 40)";
+		ctx.fillRect(this.x, this.y, this.w, this.h);
+	}
+	
+	addToList(list){
+		this.list = list;
+		this.index = list.length;
+		this.list.push(this);
+	}
+	
+	removeFromList(){
+		this.list[this.index] = null;
+	}
+	
+	doKinematics(c){
+		this.x += this.xv;
+		this.y += this.yv;
+		if(this.x < 0 || this.x > c.width-this.w || this.y < 0 || this.y > c.height-this.h){
+			this.removeFromList();
+		}
+	}
+	
+}
+		
+class Projectile{
+	constructor(x, y, xv, yv, owner){
+		this.x = x;
+		this.y = y;
+		this.w = 10;
+		this.h = 10;
+		this.xv = xv;
+		this.yv = yv;
+		this.owner = owner;
+		this.list;
+		this.index = -1;
+	}
+	
+	addToList(list){
+		this.list = list;
+		this.index = list.length;
+		this.list.push(this);
+	}
+	
+	removeFromList(){
+		this.list[this.index] = null;
+	}
+	
+	draw(ctx){
+		f.fillStyle="rgb(187, 30, 254)";
+		ctx.fillRect(this.x, this.y, this.w, this.h);
+	}
+	
+	doKinematics(c){
+		this.x += this.xv;
+		this.y += this.yv;
+		if(this.x < 0 || this.x > c.width-this.w || this.y < 0 || this.y > c.height-this.h){
+			this.removeFromList();
+		}
+	}
+	
+	touchingEnemy(enemyList){
+		for(let e of enemyList){
+			if(this.x+this.w > e.x && this.x < e.x+e.w && this.y+this.h > e.y && this.y < e.y+e.h){
+				e.removeFromList()
+				this.removeFromList();
+				return 1;
+			}
+		}
+		return 0;
+	}
+	
+}		
+		
+class Player{
+	constructor(x, y, w, h){
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+		this.xv = 0;
+		this.yv = 0;
+		this.recharge = 20;
+		this.timer = 50;
+	}
+
+		
+	draw(ctx){
+		f.fillStyle="black";
+		ctx.fillRect(this.x, this.y, this.w, this.h);
+	}
+
+	controls(keyList, projectileList){
+		let s = 5;
+		if(keyList[39]==true){
+			this.xv = s;
+		}
+		if(keyList[37]==true){
+			this.xv = -1*s;
+		}
+		if(keyList[38]==true){
+			this.yv = -1*s;
+		}
+		if(keyList[40]==true){
+			this.yv = s;
+		}
+		if(keyList[32]==true && this.recharge <= this.timer){
+			let xvel;
+			let yvel;
+			if(this.xv === 0 && this.yv === 0){
+				xvel = 15;
+				yvel = 0;
+			} else {
+				let angle = Math.atan(this.yv/this.xv);
+				if(this.xv < 0){
+					angle += Math.PI;
+				} else if(this.yvel < 0 && this.xvel === 0){
+					angle += Math.PI;
+				}
+				xvel = 15*Math.cos(angle);
+				yvel = 15*Math.sin(angle);
+			}
+			let p = new Projectile(this.x+this.w/2, this.y+this.h/2, xvel, yvel, this);
+			p.addToList(projectileList);
+			this.timer = 0;
+			console.log(p);
+		}
+	
+	}
+
+	doKinematics(c){
+		this.x += this.xv;
+		this.y += this.yv;
+		this.xv *= 0.9;
+		this.yv *= 0.9;
+		if(this.xv < 0.5){
+			this.xv = 0;
+		}
+		if(this.yv < 0.5){
+			this.yv = 0;
+		}
+		if(this.x < 0){
+			this.x = 0;
+		} else if(this.x > c.width-this.w){
+			this.x = c.width-this.w;
+		}
+		if(this.y < 0){
+			this.y = 0;
+		} else if(this.y > c.height-this.h){
+			this.y = c.height-this.h;
+		}
+	}
+	
+	update(){
+		this.timer++;
+	}
+	
+	touchingEnemy(enemyList){
+		let alive = true;
+		for(let e of enemyList){
+			if(this.x+this.w > e.x && this.x < e.x+e.w && this.y+this.h > e.y && this.y < e.y+e.h){
+				alive = false;
+			}
+		}
+		return alive;
+	}
+
+}
+		</script>
+		<script>
+
+let bob = new Player(200, 200, 30, 30);
+
+let projectileList = [];
+let enemyList = [];
+
+let score = 0;
+f.font = "30px Courier";
+
+let enemyTimer = 100;
+let enemyDelay = 100;
+
+let lose = -1;
+//bob.draw(f);
+//spawnEnemy();
+let gl = setInterval(loop, 1000/50);
+
+window.addEventListener('keydown', (event)=>{
+	key = event.which || event.keyCode;
+	console.log(key, lose);
+	if(key === 65 && (lose === -1 || lose === 1)){
+		lose = 0;
+		score = 0;
+		projectileList = [];
+		enemyList = [];
+		enemyTimer = 100;
+	}
+});
+
+function loop(){
+	if(lose == -1){
+		drawStart();
+	} else if(lose === 0){
+		projectileList = cleanList(projectileList);
+		enemyList = cleanList(enemyList);
+		f.clearRect(0,0,c.width, c.height);
+		for(p of projectileList){
+			if(p !== null){
+				p.doKinematics(c);
+				p.draw(f);
+				score += p.touchingEnemy(enemyList);
+			}
+		}
+		for(p of enemyList){
+			if(p !== null){
+				p.doKinematics(c);
+				p.draw(f);
+			}
+		}
+		bob.controls(keyList, projectileList);
+		bob.doKinematics(c);
+		bob.update();
+		bob.draw(f);
+		f.fillStyle="#232323";
+		f.fillText("Score: "+score, 10, 40);
+		if(!bob.touchingEnemy(enemyList)){
+			lose = 1;
+		}
+		
+		enemyTimer++;
+		
+		if(enemyTimer >= enemyDelay){
+			spawnEnemy();
+			enemyTimer = 0;
+		}
+		console.log(enemyTimer);
+		
+	} else if(lose === 1) {
+		f.clearRect(0,0,c.width, c.height);
+		drawEnd();
+		console.log(lose);
+	}
+}
+
+function cleanList(list){
+	for(let i=0;i<list.length;i++){
+		if(list[i] === null){
+			list.splice(i, 1);
+		}
+	}
+	for(let i=0;i<list.length;i++){
+		list[i].index = i;
+	}
+	return list;
+}
+
+function spawnEnemy(){
+	let side = Math.round(Math.random());
+	let height = Math.floor(Math.random() * (c.height-40));
+	let x = 0;
+	let xvel = Math.ceil( Math.random()*10 );
+	if(side === 1){
+		x = c.width - 40;
+		xvel *= -1;
+	}
+	let en = new Enemy(x, height, xvel, 0);
+	en.addToList(enemyList);
+	//console.log(en);
+}
+
+function drawStart(){
+	f.fillStyle="steelblue";
+	f.font = "50px Courier";
+	f.fillText("Generic Shooter", 20, 60);
+	f.fillStyle="navy";
+	f.font = "30px Courier";
+	f.fillText("Arrow Keys to Move", 20, 150);
+	f.font = "30px Courier";
+	f.fillText("Space to Shoot", 20, 190);
+	f.fillStyle="maroon";
+	f.font = "20px Courier";
+	f.fillText("Don't die", 20, 220);
+	f.fillStyle="black";
+	f.font = "20px Courier New";
+	f.fillText("Press A to begin", 20, 290);
+}
+
+function drawEnd(){
+	f.fillStyle="maroon";
+	f.font = "50px Courier";
+	f.fillText("You died!", 20, 60);
+	f.fillStyle="red";
+	f.font = "30px Courier";
+	f.fillText("Score: "+score, 20, 150);
+	f.fillStyle="black";
+	f.font = "20px Courier New";
+	f.fillText("Press A to retry", 20, 220);
+}
+
+		</script>
+	</body>
+</html>
