@@ -29,6 +29,6 @@ io.on('connection', (socket)=>{
 	});
 });
 
-http.listen(80, ()=>{
+http.listen(8000, ()=>{
 	console.log("Main page working");
 });
