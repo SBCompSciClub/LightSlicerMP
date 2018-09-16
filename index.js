@@ -29,6 +29,6 @@ io.on('connection', (socket)=>{
 	});
 });
 
-http.listen(8000, "0.0.0.0", ()=>{
+http.listen(443, "0.0.0.0", ()=>{
 	console.log("Main page working");
 });
