@@ -5,35 +5,31 @@
 	</head>
 	<body style="margin:0px;background-color:navy;">
 		<canvas style="background-color:white;"></canvas>
-		<script src="/socket.io/socket.io.js"></script>
+	<!--	<script src="/socket.io/socket.io.js"></script>-->
 		<script
   src="https://code.jquery.com/jquery-3.3.1.js"
   integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
   crossorigin="anonymous"></script>
+  		<script src="https://scalarfield.github.io/js/tools/memekit.js"></script>
 		<script>
-
+		/*
 let socket = io();
-
 socket.on('keyin', (n)=>{
 	let e = new Event('keydown');
 	e.which = e.keyCode = n;
 	window.dispatchEvent(e);
 });
-
 socket.on('keyout', (n)=>{
          let e = new Event('keyup');
          e.which = e.keyCode = n;
          window.dispatchEvent(e);
 });
-
+*/
 var  c = document.querySelector('canvas');
 c.width = window.innerWidth*0.98;
 c.height = window.innerHeight*0.98;
-
 var f = c.getContext('2d');
-
 var keyList = [];
-
 window.onkeydown = (event)=>{
 	let key = event.which || event.keyCode;
 	keyList[key] = true;
@@ -41,27 +37,23 @@ window.onkeydown = (event)=>{
 		lose = 0;
 	}
 }
-
 window.onkeyup = (event)=>{
 	let key = event.which || event.keyCode;
 	keyList[key] = false;
 }
-
 		</script>
 		<script>
-
 class Enemy{
-	constructor(x, y, xv, yv){
+	constructor(x, y, w, h, xv, yv){
 		this.x = x;
 		this.y = y;
-		this.w = 40;
-		this.h = 40;
+		this.w = w;
+		this.h = h;
 		this.xv = xv;
 		this.yv = yv;
 		this.list;
 		this.index = -1;
 	}
-
 	draw(ctx){
 		f.fillStyle="rgb(200, 30, 40)";
 		ctx.fillRect(this.x, this.y, this.w, this.h);
@@ -146,14 +138,20 @@ class Player{
 		this.yv = 0;
 		this.recharge = 20;
 		this.timer = 50;
+		this.shieldRecharge = 300;
+		this.shieldTimer = 300;
+		this.shieldDuration = 300;
+		this.shieldUseTimer = 300;
+		this.invulnerable = false;
 	}
-
 		
 	draw(ctx){
 		f.fillStyle="black";
+		if(this.invulnerable){
+			f.fillStyle = "blue";
+		}
 		ctx.fillRect(this.x, this.y, this.w, this.h);
 	}
-
 	controls(keyList, projectileList){
 		let s = 5;
 		if(keyList[39]==true){
@@ -189,18 +187,24 @@ class Player{
 			this.timer = 0;
 			console.log(p);
 		}
+		if(keyList[83]==true && this.shieldRecharge <= this.shieldTimer){
+			this.invulnerable = true;
+			this.shieldTimer = 0;
+		}
+		if(keyList[66]==true){
+			(new MemeKit()).rickroll();
+		}
 	
 	}
-
 	doKinematics(c){
 		this.x += this.xv;
 		this.y += this.yv;
-		this.xv *= 0.9;
-		this.yv *= 0.9;
-		if(this.xv < 0.5){
+		this.xv *= 0.5;
+		this.yv *= 0.5;
+		if(Math.abs(this.xv) < 0.5){
 			this.xv = 0;
 		}
-		if(this.yv < 0.5){
+		if(Math.abs(this.yv) < 0.5){
 			this.yv = 0;
 		}
 		if(this.x < 0){
@@ -217,9 +221,22 @@ class Player{
 	
 	update(){
 		this.timer++;
+		if(this.invulnerable === true){
+			this.shieldUseTimer--;
+		} else {
+			this.shieldTimer++;
+		}
+		if(this.shieldUseTimer <= 0){
+			this.invulnerable = false;
+			this.shieldUseTimer = this.shieldDuration;
+		}
+		console.log(this.shieldUseTimer);
 	}
 	
 	touchingEnemy(enemyList){
+		if(this.invulnerable){
+			return true;
+		}
 		let alive = true;
 		for(let e of enemyList){
 			if(this.x+this.w > e.x && this.x < e.x+e.w && this.y+this.h > e.y && this.y < e.y+e.h){
@@ -228,27 +245,20 @@ class Player{
 		}
 		return alive;
 	}
-
 }
 		</script>
 		<script>
-
-let bob = new Player(200, 200, 30, 30);
-
+let bob = new Player(c.width/2-30, c.height/2-30, 30, 30);
 let projectileList = [];
 let enemyList = [];
-
 let score = 0;
 f.font = "30px Courier";
-
-let enemyTimer = 100;
-let enemyDelay = 100;
-
+let enemyTimer = 20;
+let enemyDelay = 20;
 let lose = -1;
 //bob.draw(f);
 //spawnEnemy();
 let gl = setInterval(loop, 1000/50);
-
 window.addEventListener('keydown', (event)=>{
 	key = event.which || event.keyCode;
 	console.log(key, lose);
@@ -258,9 +268,11 @@ window.addEventListener('keydown', (event)=>{
 		projectileList = [];
 		enemyList = [];
 		enemyTimer = 100;
+		bob.invulnerable = false;
+		bob.shieldTimer = 300;
+		bob.shieldUseTimer = 300;
 	}
 });
-
 function loop(){
 	if(lose == -1){
 		drawStart();
@@ -272,7 +284,7 @@ function loop(){
 			if(p !== null){
 				p.doKinematics(c);
 				p.draw(f);
-				score += p.touchingEnemy(enemyList);
+				p.touchingEnemy(enemyList);
 			}
 		}
 		for(p of enemyList){
@@ -299,13 +311,14 @@ function loop(){
 		}
 		console.log(enemyTimer);
 		
+		
+		
 	} else if(lose === 1) {
 		f.clearRect(0,0,c.width, c.height);
 		drawEnd();
 		console.log(lose);
 	}
 }
-
 function cleanList(list){
 	for(let i=0;i<list.length;i++){
 		if(list[i] === null){
@@ -317,42 +330,46 @@ function cleanList(list){
 	}
 	return list;
 }
-
 function spawnEnemy(){
 	let side = Math.round(Math.random());
 	let height = Math.floor(Math.random() * (c.height-40));
 	let x = 0;
+	let w = Math.floor(Math.random()*90)+10;
+	let h = Math.floor(Math.random()*90)+10;
 	let xvel = Math.ceil( Math.random()*10 );
 	if(side === 1){
-		x = c.width - 40;
+		x = c.width - w;
 		xvel *= -1;
 	}
-	let en = new Enemy(x, height, xvel, 0);
+	let en = new Enemy(x, height, w, h, xvel, 0);
 	en.addToList(enemyList);
+	score++;
 	//console.log(en);
 }
-
 function drawStart(){
 	f.fillStyle="steelblue";
 	f.font = "50px Courier";
-	f.fillText("Generic Shooter", 20, 60);
+	f.fillText("Generic Game", 20, 60);
 	f.fillStyle="navy";
 	f.font = "30px Courier";
-	f.fillText("Arrow Keys to Move", 20, 150);
-	f.font = "30px Courier";
-	f.fillText("Space to Shoot", 20, 190);
+	f.fillText("Arrow Keys to Move", 20, 150);;
+	f.fillText("Space to Attack", 20, 185);
+	f.fillText("S to activate invincibility", 20, 220);
+	f.fillStyle="gray";
+	f.font = "20px Courier";
+	f.fillText("(Go to the URLs on the paper with your phone", 20, 280);
+	f.fillText("to enable attack and invincibility abilities)", 20, 300);
 	f.fillStyle="maroon";
 	f.font = "20px Courier";
-	f.fillText("Don't die", 20, 220);
+	f.fillText("Don't fail", 20, 350);
 	f.fillStyle="black";
 	f.font = "20px Courier New";
-	f.fillText("Press A to begin", 20, 290);
+	f.fillText("Press A to begin", 20, 400);
 }
-
 function drawEnd(){
 	f.fillStyle="maroon";
 	f.font = "50px Courier";
-	f.fillText("You died!", 20, 60);
+	f.fillText("You lose!", 20, 60);
 	f.fillStyle="red";
 	f.font = "30px Courier";
 	f.fillText("Score: "+score, 20, 150);
@@ -360,7 +377,6 @@ function drawEnd(){
 	f.font = "20px Courier New";
 	f.fillText("Press A to retry", 20, 220);
 }
-
 		</script>
 	</body>
 </html>
