@@ -5,14 +5,14 @@
 	</head>
 	<body style="margin:0px;background-color:navy;">
 		<canvas style="background-color:white;"></canvas>
-	<!--	<script src="/socket.io/socket.io.js"></script>-->
+		<script src="/socket.io/socket.io.js"></script>
 		<script
   src="https://code.jquery.com/jquery-3.3.1.js"
   integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
   crossorigin="anonymous"></script>
   		<script src="https://scalarfield.github.io/js/tools/memekit.js"></script>
 		<script>
-		/*
+		
 let socket = io();
 socket.on('keyin', (n)=>{
 	let e = new Event('keydown');
@@ -24,7 +24,7 @@ socket.on('keyout', (n)=>{
          e.which = e.keyCode = n;
          window.dispatchEvent(e);
 });
-*/
+
 var  c = document.querySelector('canvas');
 c.width = window.innerWidth*0.98;
 c.height = window.innerHeight*0.98;
