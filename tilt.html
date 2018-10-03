@@ -16,7 +16,7 @@ window.addEventListener("deviceorientation", (event)=>{
 	if(yTilt < -45){yTilt = -45;}
 	
 	let xpos = 320 + 320*xTilt/45;
-	let ypos = 240 + 240*yTilt/45;
+	let ypos = 240 - 240*yTilt/45;
 
 	socket.emit('mouse', {x:xpos, y:ypos});
 
