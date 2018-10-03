@@ -1,0 +1,68 @@
+<html>
+	<body style="margin:0px;">
+		<canvas></canvas>
+		<script src="/socket.io/socket.io.js"></script>
+
+		<script>
+/*let socket = io();
+console.log(socket);*/
+let c = document.querySelector('canvas');
+let canClick = true;
+let rechargeTime = 150;
+let timer = 150;
+
+c.ontouchstart = c.onmousedown = ()=>{
+	//socket.emit('keyin', 32);
+	if(canClick){
+		console.log("down");
+		canClick = false;
+		timer = 0;
+	}
+	return false;
+}
+c.ontouchend = c.onmouseup = ()=>{
+         //socket.emit('keyout', 32);
+         console.log("up");
+         return false;
+}
+		</script>
+
+		<script>
+c.width = window.innerWidth*0.98;
+c.height = window.innerHeight*0.98;
+let f = c.getContext('2d');
+
+let renderloop = setInterval(draw, 1000/30);
+
+function draw(){
+	f.clearRect(0, 0, c.width, c.height);
+	if(canClick){
+		f.fillStyle = "hsl(220, 30%, 50%)";
+	} else {
+		f.fillStyle = "hsl(0, 30%, 50%)";
+	}	
+	f.fillRect(0,0,c.width, c.height);
+	if(canClick){
+		f.fillStyle = "hsl(240, 50%, 20%)";
+	} else {
+		f.fillStyle = "hsl(10, 50%, 20%)";
+	}
+	f.beginPath();
+	f.arc(c.width/2, c.height/2, c.width/4, 0, 2*Math.PI);
+	f.fill();
+	f.closePath();
+	if(!canClick && timer < rechargeTime){
+		f.globalAlpha = 0.5;
+		f.fillStyle = "black";
+		f.fillRect(0, 0, c.width, c.height*timer/rechargeTime);
+		f.globalAlpha = 1;
+	}
+	timer++;
+	if(timer >= rechargeTime){
+		canClick = true;
+	}
+}
+
+	</script>
+	</body>
+</html>
