@@ -19,14 +19,14 @@ canvas {
 	</head>
 	<body>
 		<canvas></canvas>
-	<!--	<script src="/socket.io/socket.io.js"></script>-->
+		<script src="/socket.io/socket.io.js"></script>
 		<script
   src="https://code.jquery.com/jquery-3.3.1.js"
   integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
   crossorigin="anonymous"></script>
   		<script src="https://scalarfield.github.io/js/tools/game.js"></script>
 		<script>
-		/*
+		
 let socket = io();
 socket.on('keyin', (n)=>{
 	let e = new Event('keydown');
@@ -38,7 +38,7 @@ socket.on('keyout', (n)=>{
          e.which = e.keyCode = n;
          window.dispatchEvent(e);
 });
-*/
+
 
 let c = document.querySelector("canvas");
 let f = c.getContext('2d');
