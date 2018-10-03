@@ -12,9 +12,11 @@ let rechargeTime = 150;
 let timer = 150;
 
 c.ontouchstart = c.onmousedown = ()=>{
-	socket.emit('keyin', 32);
-	canClick = false;
-	timer = 0;
+	if(canClick){
+		socket.emit('keyin', 32);
+		canClick = false;
+		timer = 0;
+	}
 	return false;
 }
 c.ontouchend = c.onmouseup = ()=>{
