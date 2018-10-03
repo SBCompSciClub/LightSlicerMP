@@ -4,24 +4,21 @@
 		<script src="/socket.io/socket.io.js"></script>
 
 		<script>
-/*let socket = io();
-console.log(socket);*/
+let socket = io();
+console.log(socket);
 let c = document.querySelector('canvas');
 let canClick = true;
 let rechargeTime = 150;
 let timer = 150;
 
 c.ontouchstart = c.onmousedown = ()=>{
-	//socket.emit('keyin', 32);
-	if(canClick){
-		console.log("down");
-		canClick = false;
-		timer = 0;
-	}
+	socket.emit('keyin', 32);
+	canClick = false;
+	timer = 0;
 	return false;
 }
 c.ontouchend = c.onmouseup = ()=>{
-         //socket.emit('keyout', 32);
+         socket.emit('keyout', 32);
          console.log("up");
          return false;
 }
