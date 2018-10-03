@@ -1,0 +1,32 @@
+<html>
+	<body style="margin:0px;">
+		<script src="/socket.io/socket.io.js"></script>
+
+		<script>
+/*let socket = io();
+console.log(socket);*/
+
+window.addEventListener("deviceorientation", (event)=>{
+	let xTilt = event.gamma;
+	let yTilt = event.beta;
+	
+	if(xTilt > 45){xTilt = 45;}
+	if(xTilt < -45){xTilt = -45;}
+	if(yTilt > 45){yTilt = 45;}
+	if(yTilt < -45){yTilt = -45;}
+	
+	let xpos = 320 + 320*xTilt/45;
+	let ypos = 240 + 240*yTilt/45;
+
+	socket.emit('mouse', {x:xpos, y:ypos});
+
+});
+
+		</script>
+
+		<script>
+
+
+	</script>
+	</body>
+</html>
