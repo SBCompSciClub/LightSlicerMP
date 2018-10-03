@@ -39,10 +39,7 @@ socket.on('keyout', (n)=>{
          window.dispatchEvent(e);
 });
 socket.on('mouse', (n)=>{
-         let e = new Event('mousemove');
-         e.clientX = n.x;
-	 e.clientY = n.y;
-         window.dispatchEvent(e);
+         mouse = n;
 });
 
 let c = document.querySelector("canvas");
