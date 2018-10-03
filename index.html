@@ -38,7 +38,12 @@ socket.on('keyout', (n)=>{
          e.which = e.keyCode = n;
          window.dispatchEvent(e);
 });
-
+socket.on('mouse', (n)=>{
+         let e = new Event('mousemove');
+         e.clientX = n.x;
+	 e.clientY = n.y;
+         window.dispatchEvent(e);
+});
 
 let c = document.querySelector("canvas");
 let f = c.getContext('2d');
