@@ -11,6 +11,10 @@ app.get('/control.html', (req, res)=>{
 	res.sendFile(__dirname + "/control.html");
 });
 
+app.get('/button.html', (req, res)=>{
+	res.sendFile(__dirname + "/button.html");
+});
+
 app.get(/[0-9]+/, (req, res)=>{
 	res.redirect('/control.html?key='+req.url.substring(1));
 
