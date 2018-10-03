@@ -43,6 +43,8 @@ socket.on('keyout', (n)=>{
 let c = document.querySelector("canvas");
 let f = c.getContext('2d');
 let v = document.createElement("video");
+let useMouse = false;
+let mouse = {x: 0, y: 0};
 
 let constraints = 
 {
@@ -79,7 +81,11 @@ function update(canvas, ctx, video){
 	if(coi !== null){
 		nodes.push({x: t(coi.x-20), y: coi.y, age: 0});
 	}
-	coi = centerOfIntensity(c, f, 254);
+	if(useMouse){
+		coi = mouse;
+	} else {
+		coi = centerOfIntensity(c, f, 254);
+	}
 	cursor = {x: t(coi.x-10), y: coi.y-10, w:20, h:20};
 	for(let i=0;i<nodes.length;i++){
 		nodes[i].age++;
@@ -228,7 +234,16 @@ window.onkeydown = (event)=>{
 	if(state === 1 && key === 32 && spawnTimer >= spawnDelay){
 		spawnBox(c);
 		spawnTimer = 0;
+	} else if(key === 65){
+		useMouse = true;	
+		alert("Mouse Control enabled");
 	}
+}
+
+window.onmousemove = (event)=>{
+	let r = c.getBoundingClientRect();
+	mouse.x = event.clientX - r.left;
+	mouse.y = event.clientY - r.top;
 }
 
 		</script>
