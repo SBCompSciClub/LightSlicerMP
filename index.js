@@ -31,6 +31,9 @@ io.on('connection', (socket)=>{
 	socket.on('keyout', (n)=>{
 		io.emit('keyout', n);
 	});
+	socket.on('mouse', (n)=>{
+		io.emit('mouse', n);
+	});
 });
 
 http.listen((process.env.PORT || 8080), ()=>{
